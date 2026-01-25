@@ -6,6 +6,13 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 
+// Declaração de tipo para o Facebook Pixel
+declare global {
+  interface Window {
+    fbq?: (action: string, eventName: string, params?: any) => void;
+  }
+}
+
 export default function CadastroPage() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -68,6 +75,12 @@ export default function CadastroPage() {
           }, {
             onConflict: 'user_id'
           });
+
+        // Disparar evento de conversão do Meta Pixel
+        if (typeof window !== 'undefined' && window.fbq) {
+          window.fbq('track', 'CompleteRegistration');
+          console.log('Meta Pixel: CompleteRegistration event tracked');
+        }
       }
 
       // Redirecionar para o teste
