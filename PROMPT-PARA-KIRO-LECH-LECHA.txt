@@ -1,0 +1,80 @@
+Integração com site Identidade Negociada (Next.js)
+
+CONTEXTO:
+O site Identidade Negociada foi integrado ao Supabase compartilhado do app Lech Lecha. Usuários que se cadastram no site precisam ser reconhecidos pelo app Flutter e ter um fluxo específico.
+
+MUDANÇAS NO SUPABASE:
+Foram adicionados 2 campos novos na tabela user_progress:
+- nome (TEXT, opcional)
+- whatsapp (TEXT, opcional)
+
+SQL já executado:
+ALTER TABLE user_progress ADD COLUMN IF NOT EXISTS nome TEXT;
+ALTER TABLE user_progress ADD COLUMN IF NOT EXISTS whatsapp TEXT;
+
+IDENTIFICAÇÃO DE USUÁRIOS DO SITE:
+Usuários vindos do site têm: journey_entry_point = 'web_identidade_negociada'
+
+DADOS DISPONÍVEIS:
+Quando um usuário vem do site, o registro em user_progress contém:
+{
+  "user_id": "<UUID>",
+  "nome": "Nome do Usuário",
+  "whatsapp": "(00) 00000-0000",
+  "journey_entry_point": "web_identidade_negociada",
+  "onboarding_complete": false,
+  "completed_chapter_ids": [],
+  "unlocked_piece_indices": [],
+  "reflections": {},
+  "video_positions": {},
+  "last_updated": "2025-01-24T12:00:00Z"
+}
+
+TAREFAS NECESSÁRIAS NO APP FLUTTER:
+
+1. Atualizar modelo UserProgress para incluir os campos nome e whatsapp (opcionais/nullable)
+
+2. Adicionar verificação no login/autenticação:
+   - Buscar user_progress do usuário
+   - Verificar se journey_entry_point == 'web_identidade_negociada'
+   - Se sim: ativar fluxo silencioso (usuário já leu conteúdo no site)
+   - Se não: manter fluxo normal do app
+
+3. Implementar fluxo silencioso para usuários do site:
+   - Não mostrar onboarding genérico
+   - Reconhecer que usuário já iniciou jornada
+   - Dar continuidade ao conteúdo já consumido
+   - Usar nome para personalização (se disponível)
+
+4. Garantir compatibilidade com usuários existentes:
+   - Campos nome e whatsapp são opcionais
+   - Usuários antigos não terão esses campos
+   - Validar se campos existem antes de usar
+
+EXEMPLO DE CÓDIGO:
+
+// Verificar origem no login
+final userProgress = await supabase
+  .from('user_progress')
+  .select()
+  .eq('user_id', userId)
+  .single();
+
+if (userProgress['journey_entry_point'] == 'web_identidade_negociada') {
+  // Usuário do site - fluxo silencioso
+  _handleWebUser(userProgress);
+} else {
+  // Usuário nativo - fluxo normal
+  _handleNativeUser(userProgress);
+}
+
+OBJETIVO:
+Usuários do site devem ter experiência contínua no app, sem repetir conteúdo e sem onboarding genérico. O app deve reconhecer automaticamente que o usuário já iniciou sua jornada no site.
+
+IMPORTANTE:
+- Campos nome e whatsapp são OPCIONAIS (nullable)
+- Sempre validar se journey_entry_point existe antes de comparar
+- Manter compatibilidade com usuários existentes do app
+- Fluxo silencioso deve ser elegante e natural
+
+Por favor, implemente essas mudanças no app Flutter mantendo a arquitetura existente e garantindo compatibilidade com usuários atuais.
