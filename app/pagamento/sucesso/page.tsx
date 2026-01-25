@@ -1,7 +1,37 @@
 'use client';
 
+import { Suspense, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+// Declaração de tipo para o Facebook Pixel
+declare global {
+  interface Window {
+    fbq?: (action: string, eventName: string, params?: any) => void;
+  }
+}
+
+// Componente que usa useSearchParams
+function PurchaseTracker() {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Verificar se veio do fluxo de pagamento
+    const paymentId = searchParams.get('payment_id');
+    const status = searchParams.get('status');
+    
+    // Só disparar o evento se tiver parâmetros de pagamento válidos
+    if ((paymentId || status === 'approved') && typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', 'Purchase', {
+        value: 29.90,
+        currency: 'BRL'
+      });
+      console.log('Meta Pixel: Purchase event tracked - R$ 29,90');
+    }
+  }, [searchParams]);
+
+  return null;
+}
 
 export default function PagamentoSucessoPage() {
   const router = useRouter();
@@ -12,6 +42,11 @@ export default function PagamentoSucessoPage() {
 
   return (
     <main className="min-h-screen bg-background flex items-center justify-center px-6">
+      {/* Rastreamento de conversão */}
+      <Suspense fallback={null}>
+        <PurchaseTracker />
+      </Suspense>
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
