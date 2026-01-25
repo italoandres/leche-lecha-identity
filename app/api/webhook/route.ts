@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
         // 1. Verificar se usuário já existe no Supabase
         const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
-        const userExists = existingUser?.users.find(u => u.email === email);
+        const userExists = existingUser?.users.find((u: any) => u.email === email);
 
         let userId: string;
         let password: string | null = null;

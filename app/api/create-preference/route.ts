@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
 
     // Configurar cliente do Mercado Pago (nova sintaxe)
     const client = new MercadoPagoConfig({ 
-      accessToken: process.env.MP_ACCESS_TOKEN!,
+      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
     });
 
     const preference = new Preference(client);
@@ -16,8 +16,9 @@ export async function POST(request: NextRequest) {
     const preferenceData = {
       items: [
         {
-          title: 'Identidade Negociada - Material Digital',
-          description: 'Acesso ao material completo em 7 capítulos',
+          id: 'leitura-personalizada',
+          title: 'Leitura Personalizada - Narcisismo Materno',
+          description: 'Análise completa e leitura personalizada baseada no diagnóstico',
           quantity: 1,
           currency_id: 'BRL',
           unit_price: 29.90,
@@ -28,11 +29,11 @@ export async function POST(request: NextRequest) {
         name: name || 'Comprador',
       },
       back_urls: {
-        success: `${process.env.NEXT_PUBLIC_APP_URL}/pagamento/sucesso`,
-        failure: `${process.env.NEXT_PUBLIC_APP_URL}/pagamento/falha`,
-        pending: `${process.env.NEXT_PUBLIC_APP_URL}/pagamento/pendente`,
+        success: `${process.env.NEXT_PUBLIC_BASE_URL}/pagamento/sucesso`,
+        failure: `${process.env.NEXT_PUBLIC_BASE_URL}/pagamento/falha`,
+        pending: `${process.env.NEXT_PUBLIC_BASE_URL}/pagamento/pendente`,
       },
-      statement_descriptor: 'IDENTIDADE NEGOCIADA',
+      statement_descriptor: 'LECH LECHA',
       external_reference: `order_${Date.now()}`,
     };
 
