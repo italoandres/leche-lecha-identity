@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import { markReadingComplete } from '@/lib/supabase';
 
 const introductionText = `INTRODUÇÃO — Identidade Negociada
 
@@ -638,6 +640,7 @@ Se em algum momento você quiser seguir adiante, o próximo passo não é "se to
 ];
 
 export default function LeituraPage() {
+  const { user } = useAuth();
   const [displayedText, setDisplayedText] = useState('');
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -678,11 +681,19 @@ export default function LeituraPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleContinue = () => {
-    // Marcar usuário como "já iniciado" no localStorage
-    localStorage.setItem('lech_lecha_user_status', 'initiated');
-    // Redirecionar para a página inicial do app
-    window.location.href = '/';
+  const handleContinue = async () => {
+    // Marcar leitura como concluída no Supabase
+    if (user) {
+      try {
+        await markReadingComplete(user.id);
+        console.log('✅ Leitura marcada como concluída');
+      } catch (error) {
+        console.error('❌ Erro ao marcar leitura como concluída:', error);
+      }
+    }
+    
+    // Redirecionar para a página de boas-vindas
+    window.location.href = '/bem-vindo';
   };
 
   // Tela final de transição

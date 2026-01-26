@@ -1,10 +1,37 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { getUserProgress } from '@/lib/supabase';
 
 export default function BemVindoPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const [readingCompleted, setReadingCompleted] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function checkProgress() {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const progress = await getUserProgress(user.id);
+        const completed = progress?.completed_chapter_ids?.includes('identidade_negociada') || false;
+        setReadingCompleted(completed);
+      } catch (error) {
+        console.error('Erro ao verificar progresso:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    checkProgress();
+  }, [user]);
 
   return (
     <main className="min-h-screen bg-background py-20 px-6">
@@ -88,12 +115,27 @@ export default function BemVindoPage() {
           </div>
 
           <button
-            onClick={() => window.open('https://lechlecha.app', '_blank')}
-            className="px-12 py-4 border border-foreground/20 text-foreground hover:bg-foreground/5 transition-all duration-500 font-light tracking-wider text-sm"
+            onClick={() => {
+              if (readingCompleted) {
+                window.open('https://lechlecha.app', '_blank');
+              }
+            }}
+            disabled={!readingCompleted}
+            className={`px-12 py-4 border border-foreground/20 font-light tracking-wider text-sm transition-all duration-500 ${
+              readingCompleted 
+                ? 'text-foreground hover:bg-foreground/5 cursor-pointer' 
+                : 'text-foreground/30 cursor-not-allowed'
+            }`}
             style={{ fontFamily: 'Georgia, serif' }}
           >
             Entrar no app
           </button>
+
+          {!readingCompleted && (
+            <p className="text-foreground/40 font-light text-xs mt-6">
+              Disponível após concluir a leitura
+            </p>
+          )}
         </motion.div>
 
         {/* Fechamento */}

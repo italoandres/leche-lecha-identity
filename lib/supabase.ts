@@ -58,3 +58,39 @@ export async function upsertUserProgress(userId: string) {
 
   return data;
 }
+
+// Função para buscar progresso do usuário
+export async function getUserProgress(userId: string): Promise<UserProgress | null> {
+  const { data, error } = await supabase
+    .from('user_progress')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error) {
+    console.error('Erro ao buscar user_progress:', error);
+    return null;
+  }
+
+  return data;
+}
+
+// Função para marcar leitura como concluída
+export async function markReadingComplete(userId: string) {
+  const { data, error} = await supabase
+    .from('user_progress')
+    .update({
+      completed_chapter_ids: ['identidade_negociada'],
+      last_updated: new Date().toISOString()
+    })
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Erro ao marcar leitura como concluída:', error);
+    throw error;
+  }
+
+  return data;
+}
