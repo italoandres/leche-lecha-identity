@@ -159,33 +159,53 @@ if (userProgress['journey_entry_point'] == 'web_identidade_negociada') {
 
 ## 🚀 Deploy
 
-### Vercel (Recomendado)
+### Netlify (Ambiente Oficial de Produção)
 
+O projeto está configurado para deploy automático no Netlify via GitHub.
+
+**Deploy Automático:**
 ```bash
-vercel
+git add .
+git commit -m "Sua mensagem"
+git push origin main
 ```
 
-Configurar variáveis de ambiente no dashboard da Vercel.
+O Netlify detecta o push e faz deploy automático em ~2 minutos.
 
-### Netlify
-
+**Deploy Manual:**
 ```bash
 netlify deploy --prod
 ```
 
-Configurar variáveis de ambiente no dashboard da Netlify.
+### Configuração no Netlify
 
-### Importante
+1. **Variáveis de Ambiente** (Site Settings → Environment Variables):
+   - Supabase (URL, anon key, service role key)
+   - Mercado Pago (public key, access token)
+   - OpenAI (API key)
+   - Resend (API key)
+   - Base URL
 
-1. Atualizar URL do webhook no Mercado Pago
-2. Adicionar domínio no Supabase (**Authentication** → **URL Configuration**)
-3. Usar credenciais de produção do Mercado Pago
+2. **Webhook do Mercado Pago**:
+   - URL: `https://seu-site.netlify.app/api/webhook`
+   - Eventos: `payment`
 
-## ⚠️ Pendências
+3. **DNS do Resend**:
+   - Configurar registros TXT e MX
 
-1. **Envio de Email**: Implementar serviço real (Resend, SendGrid, etc)
-2. **Links do App**: Atualizar URLs reais da App Store e Google Play
-3. **Testes**: Testar integração completa com app Flutter
+### Documentação Completa
+
+- **AMBIENTE-PRODUCAO.md** - Configuração completa do ambiente
+- **CHECKLIST-DEPLOY-NETLIFY.md** - Checklist passo a passo
+- **REVERSAO-NETLIFY.md** - Detalhes técnicos da estrutura
+
+## ⚠️ Importante
+
+1. **Ambiente de Produção**: Netlify (estrutura completa com API routes)
+2. **Webhook**: Configurar URL no Mercado Pago após deploy
+3. **Credenciais**: Usar credenciais de PRODUÇÃO do Mercado Pago
+4. **Domínio**: Adicionar no Supabase (Authentication → URL Configuration)
+5. **DNS**: Configurar registros do Resend para envio de emails
 
 ## 📞 Suporte
 

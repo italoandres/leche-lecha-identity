@@ -1,11 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  // Configuração padrão do Next.js para Netlify
+  // API routes e SSR habilitados
   images: {
-    unoptimized: true
+    domains: [],
   },
-  trailingSlash: true,
-  // Remover headers (não funcionam em export estático)
 }
 
 module.exports = nextConfig
