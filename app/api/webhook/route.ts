@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { supabaseAdmin, upsertUserProgress } from '@/lib/supabase';
+import { sendWelcomeEmail } from '@/lib/resend';
 
 // Função para gerar senha aleatória
 function generatePassword(length = 12): string {
@@ -10,14 +11,6 @@ function generatePassword(length = 12): string {
     password += charset.charAt(Math.floor(Math.random() * charset.length));
   }
   return password;
-}
-
-// Função para enviar email com credenciais (placeholder - implementar com serviço de email)
-async function sendCredentialsEmail(email: string, password: string) {
-  // TODO: Implementar envio de email real
-  console.log('📧 Email a ser enviado para:', email);
-  console.log('🔑 Senha gerada:', password);
-  console.log('📝 Instruções: Use estas credenciais para acessar o teste em /login');
 }
 
 export async function POST(request: NextRequest) {
@@ -83,8 +76,15 @@ export async function POST(request: NextRequest) {
           userId = newUser.user.id;
           console.log('✅ Usuário criado com sucesso:', userId);
 
-          // Enviar email com credenciais
-          await sendCredentialsEmail(email, password);
+          // Enviar email com credenciais via Resend
+          try {
+            await sendWelcomeEmail(email, password);
+            console.log('✅ Email de boas-vindas enviado para:', email);
+          } catch (emailError) {
+            console.error('❌ Erro ao enviar email:', emailError);
+            // Não falhar o webhook se o email falhar
+            // O usuário foi criado com sucesso, só o email que não foi
+          }
         }
 
         // 2. Criar/atualizar registro em user_progress
