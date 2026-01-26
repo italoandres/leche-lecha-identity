@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
           description: 'Análise completa e leitura personalizada baseada no diagnóstico',
           quantity: 1,
           currency_id: 'BRL',
-          unit_price: 29.90,
+          unit_price: 2.00,
         },
       ],
       payer: {

@@ -23,7 +23,7 @@ function PurchaseTracker() {
     // Só disparar o evento se tiver parâmetros de pagamento válidos
     if ((paymentId || status === 'approved') && typeof window !== 'undefined' && window.fbq) {
       window.fbq('track', 'Purchase', {
-        value: 29.90,
+        value: 2.00,
         currency: 'BRL'
       });
       console.log('Meta Pixel: Purchase event tracked - R$ 29,90');
