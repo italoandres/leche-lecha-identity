@@ -3,21 +3,22 @@ import { Resend } from 'resend';
 // Inicializar Resend com API Key (pode ser undefined durante build)
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-// Email de boas-vindas após pagamento aprovado
-export async function sendWelcomeEmail(email: string, password: string) {
+// Email de boas-vindas ao ecossistema (após pagamento aprovado)
+export async function sendWelcomeToEcosystemEmail(email: string, nome?: string) {
   // Verificar se Resend está configurado
   if (!resend) {
     console.warn('⚠️ Resend não configurado. Email não será enviado.');
     console.log('📧 Email que seria enviado para:', email);
-    console.log('🔑 Senha gerada:', password);
     return null;
   }
+
+  const greeting = nome ? `Olá, ${nome}` : 'Olá';
 
   try {
     const { data, error } = await resend.emails.send({
       from: 'Lech Lecha <onboarding@resend.dev>', // Mude para seu domínio quando configurar
       to: [email],
-      subject: '🎉 Bem-vindo ao Lech Lecha - Seu acesso está liberado!',
+      subject: '🎉 Bem-vindo ao ecossistema Lech Lecha',
       html: `
         <!DOCTYPE html>
         <html>
@@ -46,21 +47,11 @@ export async function sendWelcomeEmail(email: string, password: string) {
               .content {
                 padding: 30px 0;
               }
-              .credentials {
+              .highlight-box {
                 background: #f9f9f9;
                 border-left: 3px solid #2c2c2c;
                 padding: 20px;
                 margin: 20px 0;
-              }
-              .credentials h2 {
-                font-size: 16px;
-                font-weight: 500;
-                margin-top: 0;
-                color: #2c2c2c;
-              }
-              .credentials p {
-                margin: 10px 0;
-                font-family: 'Courier New', monospace;
               }
               .button {
                 display: inline-block;
@@ -73,18 +64,6 @@ export async function sendWelcomeEmail(email: string, password: string) {
                 text-transform: uppercase;
                 margin: 20px 0;
               }
-              .steps {
-                background: #f9f9f9;
-                padding: 20px;
-                margin: 20px 0;
-              }
-              .steps ol {
-                margin: 10px 0;
-                padding-left: 20px;
-              }
-              .steps li {
-                margin: 10px 0;
-              }
               .footer {
                 text-align: center;
                 padding: 30px 0;
@@ -92,11 +71,8 @@ export async function sendWelcomeEmail(email: string, password: string) {
                 font-size: 12px;
                 color: #999;
               }
-              .important {
-                background: #fff3cd;
-                border-left: 3px solid #ffc107;
-                padding: 15px;
-                margin: 20px 0;
+              .section {
+                margin: 30px 0;
               }
             </style>
           </head>
@@ -107,35 +83,59 @@ export async function sendWelcomeEmail(email: string, password: string) {
             </div>
 
             <div class="content">
-              <p>Olá,</p>
+              <p>${greeting},</p>
               
               <p>Seu pagamento foi confirmado com sucesso! 🎉</p>
               
-              <p>Agora você tem acesso completo à sua leitura personalizada sobre <strong>Identidade Negociada</strong>.</p>
+              <p>Você não comprou um produto. Você entrou em um <strong>espaço de escuta, reflexão e continuidade</strong>.</p>
 
-              <div class="credentials">
-                <h2>🔐 SUAS CREDENCIAIS DE ACESSO</h2>
+              <div class="highlight-box">
+                <h2 style="font-size: 16px; font-weight: 500; margin-top: 0; color: #2c2c2c;">
+                  🔐 SUAS CREDENCIAIS
+                </h2>
+                <p>Use as mesmas credenciais que você criou no cadastro inicial:</p>
                 <p><strong>Email:</strong> ${email}</p>
-                <p><strong>Senha:</strong> ${password}</p>
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                  Se você esqueceu sua senha, pode recuperá-la na página de login.
+                </p>
               </div>
 
-              <div style="text-align: center;">
-                <a href="${process.env.NEXT_PUBLIC_BASE_URL}/login" class="button">
-                  Acessar Agora
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.NEXT_PUBLIC_BASE_URL}/bem-vindo" class="button">
+                  Começar Agora
                 </a>
               </div>
 
-              <div class="steps">
-                <h2 style="font-size: 16px; margin-top: 0;">📖 COMO ACESSAR:</h2>
-                <ol>
-                  <li>Clique no botão acima ou acesse: <a href="${process.env.NEXT_PUBLIC_BASE_URL}/login">${process.env.NEXT_PUBLIC_BASE_URL}/login</a></li>
-                  <li>Faça login com suas credenciais</li>
-                  <li>Explore sua leitura personalizada</li>
-                </ol>
+              <div class="section">
+                <h2 style="font-size: 18px; font-weight: 300; color: #2c2c2c; margin-bottom: 15px;">
+                  O que te espera
+                </h2>
+                
+                <p><strong>📖 Sua leitura personalizada</strong></p>
+                <p style="margin-left: 20px; color: #666;">
+                  Uma análise profunda sobre <em>Identidade Negociada</em> — o processo silencioso de adaptação emocional 
+                  que molda quem você se tornou. Não é sobre rotular ninguém. É sobre entender os papéis emocionais 
+                  que você aprendeu a desempenhar.
+                </p>
+
+                <p style="margin-top: 20px;"><strong>📱 App Lech Lecha (Comece pela Raiz)</strong></p>
+                <p style="margin-left: 20px; color: #666;">
+                  Um aplicativo de reflexão diária que te ajuda a reconhecer padrões emocionais antes que eles se repitam. 
+                  Gratuito para membros do ecossistema.
+                </p>
+
+                <p style="margin-top: 20px;"><strong>👥 Comunidade</strong></p>
+                <p style="margin-left: 20px; color: #666;">
+                  Você faz parte de um espaço para quem busca clareza, não respostas prontas. 
+                  Para quem quer entender, não apenas reagir.
+                </p>
               </div>
 
-              <div class="important">
-                <p style="margin: 0;"><strong>💡 IMPORTANTE:</strong> Salve este email para não perder suas credenciais de acesso.</p>
+              <div class="highlight-box" style="background: #f0f9ff; border-left-color: #0284c7;">
+                <p style="margin: 0; font-size: 14px;">
+                  <strong>💡 Próximo passo:</strong> Clique no botão acima para acessar sua página de boas-vindas 
+                  e conhecer tudo que está disponível para você.
+                </p>
               </div>
 
               <p style="margin-top: 30px;">Este não é um produto. É um espaço de escuta.</p>
@@ -159,7 +159,7 @@ export async function sendWelcomeEmail(email: string, password: string) {
       throw error;
     }
 
-    console.log('✅ Email enviado com sucesso:', data);
+    console.log('✅ Email de boas-vindas enviado com sucesso:', data);
     return data;
   } catch (error) {
     console.error('❌ Erro ao enviar email:', error);
