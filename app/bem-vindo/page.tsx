@@ -6,10 +6,13 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserProgress } from '@/lib/supabase';
 
+const CHAPTER_IDS = ['intro', 'cap1', 'cap2', 'cap3', 'cap4', 'cap5', 'cap6', 'cap7'];
+
 export default function BemVindoPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [readingCompleted, setReadingCompleted] = useState(false);
+  const [completedCount, setCompletedCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,8 +24,22 @@ export default function BemVindoPage() {
 
       try {
         const progress = await getUserProgress(user.id);
-        const completed = progress?.completed_chapter_ids?.includes('identidade_negociada') || false;
-        setReadingCompleted(completed);
+        const completedChapters = progress?.completed_chapter_ids || [];
+        
+        // Contar quantos capítulos foram marcados (excluindo o flag geral 'identidade_negociada')
+        const chaptersCompleted = CHAPTER_IDS.filter(id => completedChapters.includes(id));
+        setCompletedCount(chaptersCompleted.length);
+        
+        // Liberar acesso se TODOS os 8 capítulos foram marcados
+        const allChaptersCompleted = chaptersCompleted.length === CHAPTER_IDS.length;
+        setReadingCompleted(allChaptersCompleted);
+        
+        console.log('📊 Progresso:', {
+          completedChapters: chaptersCompleted,
+          count: chaptersCompleted.length,
+          total: CHAPTER_IDS.length,
+          unlocked: allChaptersCompleted
+        });
       } catch (error) {
         console.error('Erro ao verificar progresso:', error);
       } finally {
@@ -133,7 +150,10 @@ export default function BemVindoPage() {
 
           {!readingCompleted && (
             <p className="text-foreground/40 font-light text-xs mt-6">
-              Disponível após concluir a leitura
+              {completedCount > 0 
+                ? `Disponível após marcar todos os capítulos (${completedCount}/8 completos)`
+                : 'Disponível após concluir a leitura'
+              }
             </p>
           )}
         </motion.div>

@@ -97,9 +97,14 @@ export async function markReadingComplete(userId: string) {
 
 // Função para marcar/desmarcar capítulo individual
 export async function toggleChapterComplete(userId: string, chapterId: string) {
+  console.log('🔄 toggleChapterComplete chamado:', { userId, chapterId });
+  
   // Buscar progresso atual
   const progress = await getUserProgress(userId);
-  if (!progress) throw new Error('Progresso não encontrado');
+  if (!progress) {
+    console.error('❌ Progresso não encontrado para userId:', userId);
+    throw new Error('Progresso não encontrado');
+  }
 
   const currentChapters = progress.completed_chapter_ids || [];
   let updatedChapters: string[];
@@ -107,9 +112,17 @@ export async function toggleChapterComplete(userId: string, chapterId: string) {
   // Se já está completo, remove. Se não, adiciona.
   if (currentChapters.includes(chapterId)) {
     updatedChapters = currentChapters.filter(id => id !== chapterId);
+    console.log('➖ Removendo capítulo:', chapterId);
   } else {
     updatedChapters = [...currentChapters, chapterId];
+    console.log('➕ Adicionando capítulo:', chapterId);
   }
+
+  console.log('📝 Atualizando Supabase:', {
+    userId,
+    before: currentChapters,
+    after: updatedChapters
+  });
 
   // Atualizar no Supabase
   const { data, error } = await supabase
@@ -123,9 +136,10 @@ export async function toggleChapterComplete(userId: string, chapterId: string) {
     .single();
 
   if (error) {
-    console.error('Erro ao atualizar capítulo:', error);
+    console.error('❌ Erro ao atualizar capítulo:', error);
     throw error;
   }
 
+  console.log('✅ Capítulo atualizado com sucesso:', data);
   return data;
 }

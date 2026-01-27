@@ -96,6 +96,7 @@ export default function CapitulosPage() {
   const completedCount = completedChapters.filter(id => id !== 'identidade_negociada').length;
   const totalChapters = chapters.length;
   const progressPercentage = (completedCount / totalChapters) * 100;
+  const allChaptersCompleted = completedCount === totalChapters;
 
   if (loading) {
     return (
@@ -151,6 +152,31 @@ export default function CapitulosPage() {
             />
           </div>
         </motion.div>
+
+        {/* Comunicado de conclusão */}
+        {allChaptersCompleted && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="mb-12 px-8 py-6 border border-green-500/20 bg-green-500/5"
+          >
+            <p 
+              className="text-foreground/80 font-light text-center mb-4"
+              style={{ fontFamily: 'Georgia, serif' }}
+            >
+              Acesso ao app Comece pela Raiz liberado
+            </p>
+            <div className="text-center">
+              <Link
+                href="/bem-vindo"
+                className="inline-block px-10 py-3 border border-foreground/20 text-foreground hover:bg-foreground/5 transition-all duration-300 font-light tracking-wide text-sm"
+              >
+                Entrar no app
+              </Link>
+            </div>
+          </motion.div>
+        )}
 
         {/* Lista de capítulos */}
         <motion.div
