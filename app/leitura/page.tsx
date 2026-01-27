@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { markReadingComplete } from '@/lib/supabase';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 const introductionText = `INTRODUÇÃO — Identidade Negociada
@@ -642,6 +643,7 @@ Se em algum momento você quiser seguir adiante, o próximo passo não é "se to
 
 export default function LeituraPage() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [displayedText, setDisplayedText] = useState('');
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -649,19 +651,32 @@ export default function LeituraPage() {
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const [showFinalScreen, setShowFinalScreen] = useState(false);
 
+  // Verificar se há parâmetro de capítulo na URL
+  useEffect(() => {
+    const chapterParam = searchParams.get('chapter');
+    if (chapterParam !== null) {
+      const chapterIndex = parseInt(chapterParam, 10);
+      if (!isNaN(chapterIndex) && chapterIndex >= 0 && chapterIndex < chapters.length) {
+        setSelectedChapter(chapterIndex);
+        setShowChapters(false);
+        setIsIntroComplete(true);
+      }
+    }
+  }, [searchParams]);
+
   // Efeito de digitação apenas na introdução
   useEffect(() => {
-    if (!showChapters && currentIndex < introductionText.length) {
+    if (!showChapters && selectedChapter === null && currentIndex < introductionText.length) {
       const timeout = setTimeout(() => {
         setDisplayedText(prev => prev + introductionText[currentIndex]);
         setCurrentIndex(prev => prev + 1);
       }, 30);
 
       return () => clearTimeout(timeout);
-    } else if (currentIndex >= introductionText.length && !isIntroComplete) {
+    } else if (currentIndex >= introductionText.length && !isIntroComplete && selectedChapter === null) {
       setIsIntroComplete(true);
     }
-  }, [currentIndex, showChapters, isIntroComplete]);
+  }, [currentIndex, showChapters, isIntroComplete, selectedChapter]);
 
   const handleShowChapters = () => {
     setShowChapters(true);

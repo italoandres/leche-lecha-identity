@@ -94,3 +94,38 @@ export async function markReadingComplete(userId: string) {
 
   return data;
 }
+
+// Função para marcar/desmarcar capítulo individual
+export async function toggleChapterComplete(userId: string, chapterId: string) {
+  // Buscar progresso atual
+  const progress = await getUserProgress(userId);
+  if (!progress) throw new Error('Progresso não encontrado');
+
+  const currentChapters = progress.completed_chapter_ids || [];
+  let updatedChapters: string[];
+
+  // Se já está completo, remove. Se não, adiciona.
+  if (currentChapters.includes(chapterId)) {
+    updatedChapters = currentChapters.filter(id => id !== chapterId);
+  } else {
+    updatedChapters = [...currentChapters, chapterId];
+  }
+
+  // Atualizar no Supabase
+  const { data, error } = await supabase
+    .from('user_progress')
+    .update({
+      completed_chapter_ids: updatedChapters,
+      last_updated: new Date().toISOString()
+    })
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Erro ao atualizar capítulo:', error);
+    throw error;
+  }
+
+  return data;
+}

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { getUserProgress, markReadingComplete } from '@/lib/supabase';
+import { getUserProgress, toggleChapterComplete } from '@/lib/supabase';
 import Link from 'next/link';
 
 const chapters = [
@@ -76,20 +76,26 @@ export default function CapitulosPage() {
     loadProgress();
   }, [user, router]);
 
-  const handleMarkComplete = async () => {
+  const handleToggleChapter = async (chapterId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita navegação ao clicar no checkbox
     if (!user) return;
 
     try {
-      await markReadingComplete(user.id);
-      setCompletedChapters(['identidade_negociada']);
-      alert('Leitura marcada como concluída! ✓');
+      const updatedProgress = await toggleChapterComplete(user.id, chapterId);
+      setCompletedChapters(updatedProgress.completed_chapter_ids || []);
     } catch (error) {
-      console.error('Erro ao marcar como concluída:', error);
-      alert('Erro ao marcar leitura como concluída');
+      console.error('Erro ao atualizar capítulo:', error);
     }
   };
 
-  const isReadingComplete = completedChapters.includes('identidade_negociada');
+  const handleChapterClick = (index: number) => {
+    // Navegar para /leitura com parâmetro de capítulo
+    router.push(`/leitura?chapter=${index}`);
+  };
+
+  const completedCount = completedChapters.filter(id => id !== 'identidade_negociada').length;
+  const totalChapters = chapters.length;
+  const progressPercentage = (completedCount / totalChapters) * 100;
 
   if (loading) {
     return (
@@ -108,7 +114,7 @@ export default function CapitulosPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
-          className="mb-16 text-center"
+          className="mb-12 text-center"
         >
           <h1 
             className="text-3xl font-light text-foreground mb-4 tracking-wide"
@@ -121,77 +127,114 @@ export default function CapitulosPage() {
           </p>
         </motion.div>
 
+        {/* Barra de progresso */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.8 }}
+          className="mb-12"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-foreground/60 font-light text-sm">
+              Progresso da leitura
+            </p>
+            <p className="text-foreground/60 font-light text-sm">
+              {completedCount} de {totalChapters} capítulos
+            </p>
+          </div>
+          <div className="w-full h-1.5 bg-foreground/10 rounded-full overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercentage}%` }}
+              transition={{ duration: 1, delay: 0.5 }}
+              className="h-full bg-green-500/50"
+            />
+          </div>
+        </motion.div>
+
         {/* Lista de capítulos */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.8 }}
+          transition={{ delay: 0.4, duration: 0.8 }}
           className="space-y-4 mb-16"
         >
-          <p className="text-foreground/60 font-light text-sm mb-8 text-center">
-            Clique em "Começar leitura" para acessar todos os capítulos
-          </p>
-          
-          {chapters.map((chapter, index) => (
-            <div
-              key={chapter.id}
-              className="px-8 py-6 border border-foreground/10 bg-secondary/10"
-            >
-              <p className="text-muted/60 text-xs font-light tracking-wider mb-2">
-                {chapter.number}
-              </p>
-              <p className="text-foreground/80 font-light text-lg">
-                {chapter.title}
-              </p>
-            </div>
-          ))}
-          
-          <div className="text-center mt-12">
-            <Link
-              href="/leitura"
-              className="inline-block px-12 py-4 border border-foreground/20 text-foreground hover:bg-foreground/5 transition-all duration-300 font-light tracking-wide text-sm"
-            >
-              Começar leitura
-            </Link>
-          </div>
+          {chapters.map((chapter, index) => {
+            const isComplete = completedChapters.includes(chapter.id);
+            
+            return (
+              <motion.div
+                key={chapter.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 + (index * 0.05), duration: 0.5 }}
+                onClick={() => handleChapterClick(index)}
+                className={`
+                  px-8 py-6 border cursor-pointer
+                  transition-all duration-300
+                  ${isComplete 
+                    ? 'border-green-500/30 bg-green-500/5 shadow-[0_0_15px_rgba(34,197,94,0.1)]' 
+                    : 'border-foreground/10 bg-secondary/10 hover:bg-foreground/5'
+                  }
+                `}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-muted/60 text-xs font-light tracking-wider mb-2">
+                      {chapter.number}
+                    </p>
+                    <p className="text-foreground/80 font-light text-lg">
+                      {chapter.title}
+                    </p>
+                  </div>
+                  
+                  {/* Checkbox */}
+                  <button
+                    onClick={(e) => handleToggleChapter(chapter.id, e)}
+                    className={`
+                      ml-4 w-6 h-6 border-2 rounded flex items-center justify-center
+                      transition-all duration-300 flex-shrink-0
+                      ${isComplete 
+                        ? 'border-green-500/50 bg-green-500/20' 
+                        : 'border-foreground/20 hover:border-foreground/40'
+                      }
+                    `}
+                  >
+                    {isComplete && (
+                      <svg 
+                        className="w-4 h-4 text-green-500" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={3} 
+                          d="M5 13l4 4L19 7" 
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
         </motion.div>
 
-        {/* Ações */}
+        {/* Botão voltar */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="pt-8 border-t border-foreground/10 space-y-6"
+          transition={{ delay: 0.8, duration: 0.8 }}
+          className="text-center pt-8 border-t border-foreground/10"
         >
-          {/* Marcar como concluída */}
-          {!isReadingComplete && (
-            <div className="text-center">
-              <button
-                onClick={handleMarkComplete}
-                className="px-12 py-4 border border-foreground/20 text-foreground hover:bg-foreground/5 transition-all duration-300 font-light tracking-wide text-sm"
-              >
-                Marcar leitura como concluída
-              </button>
-              <p className="text-foreground/50 font-light text-xs mt-4">
-                Isso liberará o acesso ao app
-              </p>
-            </div>
-          )}
-
-          {/* Status de conclusão */}
-          {isReadingComplete && (
-            <div className="text-center">
-              <p className="text-foreground/70 font-light mb-4">
-                ✓ Leitura concluída
-              </p>
-              <Link
-                href="/bem-vindo"
-                className="inline-block px-12 py-4 border border-foreground/20 text-foreground hover:bg-foreground/5 transition-all duration-300 font-light tracking-wide text-sm"
-              >
-                Voltar à página inicial
-              </Link>
-            </div>
-          )}
+          <Link
+            href="/bem-vindo"
+            className="inline-block px-12 py-4 border border-foreground/20 text-foreground hover:bg-foreground/5 transition-all duration-300 font-light tracking-wide text-sm"
+          >
+            Voltar à página inicial
+          </Link>
         </motion.div>
 
       </div>
