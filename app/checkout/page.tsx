@@ -1,47 +1,58 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 export default function CheckoutPage() {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState('');
+  const { user } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState<{ nome: string; email: string } | null>(null);
 
-  const handleCheckout = async () => {
-    if (!email || !name) {
-      setError('Por favor, preencha todos os campos');
-      return;
-    }
-
-    setIsProcessing(true);
-    setError('');
-
-    try {
-      // Criar preferência de pagamento
-      const response = await fetch('/api/create-preference', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, name }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao criar pagamento');
+  useEffect(() => {
+    async function loadUserData() {
+      if (!user) {
+        router.push('/login');
+        return;
       }
 
-      const data = await response.json();
+      // Buscar dados do usuário
+      const { data } = await supabase
+        .from('user_progress')
+        .select('nome')
+        .eq('user_id', user.id)
+        .single();
 
-      // Redirecionar para página de pagamento do Mercado Pago
-      window.location.href = data.init_point;
-    } catch (err: any) {
-      console.error('Erro:', err);
-      setError('Não foi possível processar o pagamento. Tente novamente.');
-      setIsProcessing(false);
+      setUserData({
+        nome: data?.nome || '',
+        email: user.email || '',
+      });
+      setLoading(false);
     }
+
+    loadUserData();
+  }, [user, router]);
+
+  const handleCheckout = () => {
+    if (!userData) return;
+
+    // Link da Hotmart com dados pré-populados
+    const hotmartLink = `https://pay.hotmart.com/U104102596N?name=${encodeURIComponent(userData.nome)}&email=${encodeURIComponent(userData.email)}`;
+    
+    // Redirecionar para Hotmart
+    window.location.href = hotmartLink;
   };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-foreground/70 font-light">Carregando...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-background py-16 px-6">
@@ -68,56 +79,29 @@ export default function CheckoutPage() {
           className="bg-secondary/30 border border-foreground/10 p-8 mb-8"
         >
           <div className="flex justify-between items-center mb-6 pb-6 border-b border-foreground/10">
-            <span className="text-foreground/80 font-light">Material digital</span>
-            <span className="text-foreground font-light">R$ 29,90</span>
+            <span className="text-foreground/80 font-light">Leitura Personalizada</span>
+            <span className="text-foreground font-light">$7.50</span>
           </div>
           
           <div className="flex justify-between items-center">
             <span className="text-foreground font-light">Total</span>
-            <span className="text-foreground text-xl font-light">R$ 29,90</span>
+            <span className="text-foreground text-xl font-light">$7.50</span>
           </div>
         </motion.div>
 
-        {/* Formulário */}
+        {/* Informações do usuário */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.8 }}
-          className="space-y-4 mb-8"
+          className="mb-8 p-6 bg-secondary/20 border border-foreground/10"
         >
-          <div>
-            <label className="block text-foreground/70 text-sm font-light mb-2">
-              Nome completo
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Seu nome"
-              className="w-full px-4 py-3 bg-secondary/30 border border-foreground/10 text-foreground font-light focus:outline-none focus:border-accent/50 transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-foreground/70 text-sm font-light mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              className="w-full px-4 py-3 bg-secondary/30 border border-foreground/10 text-foreground font-light focus:outline-none focus:border-accent/50 transition-colors"
-            />
-          </div>
+          <p className="text-foreground/70 text-sm font-light mb-2">
+            Comprando como:
+          </p>
+          <p className="text-foreground font-light">{userData?.nome}</p>
+          <p className="text-foreground/60 text-sm font-light">{userData?.email}</p>
         </motion.div>
-
-        {/* Erro */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-light text-center">
-            {error}
-          </div>
-        )}
 
         {/* Botão */}
         <motion.div
@@ -128,19 +112,13 @@ export default function CheckoutPage() {
         >
           <button
             onClick={handleCheckout}
-            disabled={isProcessing}
-            className={`
-              w-full px-12 py-4 border border-foreground/20 text-foreground 
-              hover:bg-foreground/5 transition-all duration-300 font-light 
-              tracking-wide text-sm
-              ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
-            `}
+            className="w-full px-12 py-4 border border-foreground/20 text-foreground hover:bg-foreground/5 transition-all duration-300 font-light tracking-wide text-sm"
           >
-            {isProcessing ? 'Processando...' : 'Ir para pagamento'}
+            Continuar para Pagamento
           </button>
           
           <p className="text-muted/60 text-xs font-light mt-6">
-            Você será redirecionado para o Mercado Pago
+            Checkout seguro via Hotmart
           </p>
         </motion.div>
 

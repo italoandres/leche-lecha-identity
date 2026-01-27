@@ -81,7 +81,7 @@ export default function BemVindoPage() {
           </div>
 
           <button
-            onClick={() => router.push('/leitura')}
+            onClick={() => router.push('/leitura/capitulos')}
             className="px-12 py-4 border border-foreground/20 text-foreground hover:bg-foreground/5 transition-all duration-500 font-light tracking-wider text-sm"
             style={{ fontFamily: 'Georgia, serif' }}
           >

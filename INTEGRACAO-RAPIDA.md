@@ -1,113 +1,197 @@
-# Integração Rápida - Identidade Negociada ↔ Lech Lecha
+# 🚀 Integração Hotmart - Guia Rápido
 
-## 🎯 O que mudou no Supabase?
+## ✅ O que foi feito
 
-Apenas **2 campos novos** na tabela `user_progress`:
+### 1. Código Atualizado
+- ✅ Página `/checkout` atualizada com link Hotmart
+- ✅ Checkout pré-populado (nome + email automáticos)
+- ✅ Webhook endpoint criado: `/api/webhook-hotmart`
+- ✅ Preço atualizado: $7.50 USD
 
-```sql
-ALTER TABLE user_progress ADD COLUMN IF NOT EXISTS nome TEXT;
-ALTER TABLE user_progress ADD COLUMN IF NOT EXISTS whatsapp TEXT;
+### 2. Link do Produto
 ```
-
-**Pronto!** Só isso no banco de dados.
-
----
-
-## 🔑 Como identificar usuários do site?
-
-```dart
-journey_entry_point == 'web_identidade_negociada'
+https://pay.hotmart.com/U104102596N
 ```
 
 ---
 
-## 📦 Dados que o site envia para o Supabase
+## 🔧 Próximos Passos (VOCÊ PRECISA FAZER)
 
-Quando um usuário se cadastra no site, o registro em `user_progress` fica assim:
+### Passo 1: Configurar Webhook na Hotmart
 
-```json
-{
-  "user_id": "<UUID>",
-  "nome": "João Silva",
-  "whatsapp": "(11) 99999-9999",
-  "journey_entry_point": "web_identidade_negociada",
-  "onboarding_complete": false,
-  "completed_chapter_ids": [],
-  "unlocked_piece_indices": [],
-  "reflections": {},
-  "video_positions": {},
-  "last_updated": "2025-01-24T12:00:00Z"
-}
+1. **Acessar Hotmart:**
+   - Login: https://app.hotmart.com
+   - Menu: **Ferramentas** → **Webhook (API e notificações)**
+
+2. **Adicionar Webhook:**
+   - Clicar: **"Adicionar webhook"**
+   - URL: `https://lechlecha.shop/api/webhook-hotmart`
+   - Eventos: Selecionar **"PURCHASE_COMPLETE"**
+   - Versão: **V2**
+   - Salvar
+
+3. **Testar Webhook (Opcional):**
+   - Hotmart tem ferramenta de teste
+   - Enviar evento de teste
+   - Verificar se recebeu no Netlify Functions
+
+---
+
+### Passo 2: Configurar URLs de Retorno
+
+1. **Acessar produto na Hotmart**
+2. **Ir em: Configurações → URLs de retorno**
+3. **Configurar:**
+   - **URL de sucesso:** `https://lechlecha.shop/bem-vindo`
+   - **URL de cancelamento:** `https://lechlecha.shop/checkout`
+
+---
+
+### Passo 3: Personalizar Checkout (Opcional)
+
+1. **Acessar Hotmart**
+2. **Ir em: Ferramentas → Aparência da página de pagamento**
+3. **Personalizar:**
+   - Logo: Upload da logo Lech Lecha
+   - Cores: Usar paleta do site (#000000, #FFFFFF)
+   - Descrição: Adicionar texto sobre o produto
+
+---
+
+### Passo 4: Fazer Deploy
+
+```bash
+git add .
+git commit -m "Integração Hotmart completa"
+git push origin main
+```
+
+O Netlify vai fazer deploy automático.
+
+---
+
+## 🧪 Como Testar
+
+### Teste Completo do Fluxo
+
+1. **Fazer cadastro:**
+   - Acessar: https://lechlecha.shop/cadastro
+   - Criar conta com email real
+
+2. **Ir para checkout:**
+   - Acessar: https://lechlecha.shop/checkout
+   - Verificar se nome e email aparecem corretos
+   - Clicar em "Continuar para Pagamento"
+
+3. **Fazer pagamento na Hotmart:**
+   - Usar cartão de teste: `4111 1111 1111 1111`
+   - CVV: `123`
+   - Validade: Qualquer data futura
+   - Completar pagamento
+
+4. **Verificar automações:**
+   - Webhook deve processar (verificar logs Netlify)
+   - Acesso deve ser liberado (verificar Supabase)
+   - Email deve ser enviado (verificar inbox)
+   - Redirecionamento para `/bem-vindo`
+
+---
+
+## 📊 Monitoramento
+
+### Verificar Logs do Webhook
+
+**Netlify Functions:**
+1. Acessar: https://app.netlify.com
+2. Ir em: **Functions**
+3. Procurar: `webhook-hotmart`
+4. Ver logs de execução
+
+### Verificar Liberação de Acesso
+
+**Supabase:**
+1. Acessar: https://supabase.com
+2. Ir em: **Table Editor** → `user_progress`
+3. Verificar campo `completed_chapter_ids`
+4. Deve conter: `["identidade_negociada"]`
+
+### Verificar Email
+
+- Inbox do email usado no cadastro
+- Assunto: "Seu acesso está liberado"
+
+---
+
+## 🎯 Fluxo Completo
+
+```
+1. Usuário faz cadastro
+   ↓
+2. Usuário vai para /checkout
+   ↓
+3. Clica em "Continuar para Pagamento"
+   ↓
+4. Redireciona para Hotmart (dados pré-populados)
+   ↓
+5. Usuário paga na Hotmart
+   ↓
+6. Hotmart envia webhook para /api/webhook-hotmart
+   ↓
+7. Webhook libera acesso no Supabase
+   ↓
+8. Webhook envia email via Resend
+   ↓
+9. Hotmart redireciona para /bem-vindo
+   ↓
+10. Usuário acessa leitura completa
 ```
 
 ---
 
-## 🔄 O que o app Flutter precisa fazer?
+## ✅ Checklist
 
-### 1. Atualizar modelo `UserProgress`
-
-```dart
-class UserProgress {
-  final String userId;
-  final String? nome; // NOVO
-  final String? whatsapp; // NOVO
-  final String journeyEntryPoint;
-  // ... resto dos campos
-}
-```
-
-### 2. Verificar origem no login
-
-```dart
-// Buscar user_progress
-final userProgress = await supabase
-  .from('user_progress')
-  .select()
-  .eq('user_id', userId)
-  .single();
-
-// Verificar se veio do site
-if (userProgress['journey_entry_point'] == 'web_identidade_negociada') {
-  // Usuário do site - ativar fluxo silencioso
-  _handleWebUser(userProgress);
-} else {
-  // Usuário nativo - fluxo normal
-  _handleNativeUser(userProgress);
-}
-```
-
-### 3. Implementar fluxo silencioso
-
-```dart
-void _handleWebUser(UserProgress userProgress) {
-  // Usuário já leu "Identidade Negociada" no site
-  // Não mostrar onboarding genérico
-  // Dar continuidade ao conteúdo
-  
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (context) => ContinuidadeScreen()),
-  );
-}
-```
+- [ ] Deploy feito no Netlify
+- [ ] Webhook configurado na Hotmart
+- [ ] URLs de retorno configuradas
+- [ ] Teste de pagamento realizado
+- [ ] Webhook processou corretamente
+- [ ] Acesso liberado no Supabase
+- [ ] Email enviado
+- [ ] Checkout personalizado (opcional)
 
 ---
 
-## ✅ Checklist Mínimo
+## 🔄 Remover Mercado Pago (Depois de Testar)
 
-- [ ] Executar SQL no Supabase (2 comandos acima)
-- [ ] Adicionar `nome` e `whatsapp` ao modelo `UserProgress`
-- [ ] Verificar `journey_entry_point` no login
-- [ ] Implementar fluxo silencioso para `'web_identidade_negociada'`
+Após confirmar que Hotmart funciona:
+
+```bash
+# Remover arquivos antigos
+rm app/api/create-preference/route.ts
+rm app/api/webhook/route.ts
+
+# Commit
+git add .
+git commit -m "Remover Mercado Pago"
+git push origin main
+```
+
+Também remover variáveis do Netlify:
+- `NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY`
+- `MERCADOPAGO_ACCESS_TOKEN`
 
 ---
 
-## 🎯 Resultado
+## 🎉 Pronto!
 
-Usuários do site são reconhecidos automaticamente pelo app e têm fluxo específico (sem onboarding genérico, continuidade do conteúdo).
+Agora você tem:
+- ✅ Checkout otimizado da Hotmart
+- ✅ Vendas globais em USD
+- ✅ Checkout pré-populado
+- ✅ Webhook confiável
+- ✅ Email automático
+- ✅ Estrutura própria
 
----
+**Tempo estimado:** 15-30 minutos
 
-## 📄 Documentação Completa
-
-Para detalhes completos, veja: `PROMPT-INTEGRACAO-LECH-LECHA.md`
+**Dúvidas?** Verifica os logs no Netlify Functions! 🚀

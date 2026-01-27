@@ -16,18 +16,9 @@ function PurchaseTracker() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Verificar se veio do fluxo de pagamento
-    const paymentId = searchParams.get('payment_id');
-    const status = searchParams.get('status');
-    
-    // Só disparar o evento se tiver parâmetros de pagamento válidos
-    if ((paymentId || status === 'approved') && typeof window !== 'undefined' && window.fbq) {
-      window.fbq('track', 'Purchase', {
-        value: 2.00,
-        currency: 'BRL'
-      });
-      console.log('Meta Pixel: Purchase event tracked - R$ 29,90');
-    }
+    // NOTA: Evento Purchase agora é rastreado pela Hotmart via Pixel
+    // Não disparamos mais manualmente para evitar duplicação
+    console.log('Purchase tracking handled by Hotmart Pixel integration');
   }, [searchParams]);
 
   return null;

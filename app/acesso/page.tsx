@@ -107,7 +107,7 @@ export default function AcessoPage() {
           </Link>
           
           <p className="text-muted/60 text-sm font-light mt-6">
-            Valor: R$ 29,90
+            Valor: $7.50 USD
           </p>
         </motion.div>
 
