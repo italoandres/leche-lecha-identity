@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { markReadingComplete } from '@/lib/supabase';
@@ -642,6 +642,18 @@ Se em algum momento você quiser seguir adiante, o próximo passo não é "se to
 ];
 
 export default function LeituraPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-foreground/70 font-light">Carregando...</p>
+      </main>
+    }>
+      <LeituraContent />
+    </Suspense>
+  );
+}
+
+function LeituraContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const [displayedText, setDisplayedText] = useState('');
