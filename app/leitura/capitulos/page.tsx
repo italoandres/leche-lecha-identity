@@ -11,50 +11,42 @@ const chapters = [
   {
     id: 'intro',
     number: 'Introdução',
-    title: 'Identidade Negociada',
-    route: '/leitura'
+    title: 'Identidade Negociada'
   },
   {
     id: 'cap1',
     number: 'I',
-    title: 'O erro de procurar culpados',
-    route: '/leitura/capitulo-1'
+    title: 'O erro de procurar culpados'
   },
   {
     id: 'cap2',
     number: 'II',
-    title: 'Antes do rótulo, existiu uma adaptação',
-    route: '/leitura/capitulo-2'
+    title: 'Antes do rótulo, existiu uma adaptação'
   },
   {
     id: 'cap3',
     number: 'III',
-    title: 'O papel emocional que você aprendeu a desempenhar',
-    route: '/leitura/capitulo-3'
+    title: 'O papel emocional que você aprendeu a desempenhar'
   },
   {
     id: 'cap4',
     number: 'IV',
-    title: 'Quando o papel começa a se confundir com quem você é',
-    route: '/leitura/capitulo-4'
+    title: 'Quando o papel começa a se confundir com quem você é'
   },
   {
     id: 'cap5',
     number: 'V',
-    title: 'Quando o que te sustentou começa a te cansar',
-    route: '/leitura/capitulo-5'
+    title: 'Quando o que te sustentou começa a te cansar'
   },
   {
     id: 'cap6',
     number: 'VI',
-    title: 'O medo de existir sem o papel',
-    route: '/leitura/capitulo-6'
+    title: 'O medo de existir sem o papel'
   },
   {
     id: 'cap7',
     number: 'VII',
-    title: 'Quando você percebe — e ainda não sabe o que fazer',
-    route: '/leitura/capitulo-7'
+    title: 'Quando você percebe — e ainda não sabe o que fazer'
   }
 ];
 
@@ -136,11 +128,14 @@ export default function CapitulosPage() {
           transition={{ delay: 0.3, duration: 0.8 }}
           className="space-y-4 mb-16"
         >
+          <p className="text-foreground/60 font-light text-sm mb-8 text-center">
+            Clique em "Começar leitura" para acessar todos os capítulos
+          </p>
+          
           {chapters.map((chapter, index) => (
-            <Link
+            <div
               key={chapter.id}
-              href={chapter.route}
-              className="block px-8 py-6 border border-foreground/10 hover:bg-foreground/5 transition-all duration-300"
+              className="px-8 py-6 border border-foreground/10 bg-secondary/10"
             >
               <p className="text-muted/60 text-xs font-light tracking-wider mb-2">
                 {chapter.number}
@@ -148,8 +143,17 @@ export default function CapitulosPage() {
               <p className="text-foreground/80 font-light text-lg">
                 {chapter.title}
               </p>
-            </Link>
+            </div>
           ))}
+          
+          <div className="text-center mt-12">
+            <Link
+              href="/leitura"
+              className="inline-block px-12 py-4 border border-foreground/20 text-foreground hover:bg-foreground/5 transition-all duration-300 font-light tracking-wide text-sm"
+            >
+              Começar leitura
+            </Link>
+          </div>
         </motion.div>
 
         {/* Ações */}
