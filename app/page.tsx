@@ -84,7 +84,7 @@ export default function Home() {
           className="text-center"
         >
           <Link
-            href="/cadastro"
+            href="/teste"
             className="inline-block bg-accent text-white px-10 py-4 rounded-lg font-semibold text-lg hover:bg-accent/90 transition-all duration-300 hover:shadow-lg hover:scale-105 min-w-[44px] min-h-[44px]"
           >
             Começar o Teste
