@@ -16,7 +16,21 @@ interface DiagnosticoData {
 function ResultadoContent() {
   const searchParams = useSearchParams();
   const scoreParam = searchParams.get('score');
-  const score = scoreParam ? parseInt(scoreParam, 10) : null;
+  
+  // Buscar score do localStorage se não vier da URL
+  const [score, setScore] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (scoreParam) {
+      setScore(parseInt(scoreParam, 10));
+    } else {
+      // Buscar do localStorage
+      const savedScore = localStorage.getItem('testScore');
+      if (savedScore) {
+        setScore(parseInt(savedScore, 10));
+      }
+    }
+  }, [scoreParam]);
 
   const [data, setData] = useState<DiagnosticoData | null>(null);
   const [isLoading, setIsLoading] = useState(true);

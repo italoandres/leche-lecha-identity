@@ -48,12 +48,15 @@ export default function TestePage() {
     if (allAnswered && !isComplete) {
       setIsComplete(true);
       
-      // Calculate score and navigate to results
+      // Salvar respostas no localStorage
       const validResponses = responses.filter((r): r is number => r !== null);
       const result = calculateScore(validResponses);
       
-      // Navigate to results page with score
-      router.push(`/resultado?score=${result.total}`);
+      localStorage.setItem('testResponses', JSON.stringify(validResponses));
+      localStorage.setItem('testScore', result.total.toString());
+      
+      // Redirecionar para cadastro (não mais para resultado)
+      router.push('/cadastro');
     }
   }, [responses, isComplete, router]);
 
@@ -123,7 +126,7 @@ export default function TestePage() {
         >
           {answeredCount === questions.length ? (
             <p className="text-accent font-medium">
-              Calculando seu resultado...
+              Redirecionando para cadastro...
             </p>
           ) : (
             <p>

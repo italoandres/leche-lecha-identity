@@ -83,8 +83,8 @@ export default function CadastroPage() {
         }
       }
 
-      // Redirecionar para o teste
-      router.push('/teste');
+      // Redirecionar para o resultado (não mais para /teste)
+      router.push('/resultado');
     } catch (err: any) {
       console.error('Erro no cadastro:', err);
       if (err.message.includes('already registered')) {
@@ -112,12 +112,12 @@ export default function CadastroPage() {
             className="text-2xl md:text-3xl font-light text-foreground/90 mb-4 leading-relaxed"
             style={{ fontFamily: 'Georgia, serif' }}
           >
-            Antes de começar, crie seu acesso pessoal
+            Crie sua conta para ver o resultado
           </h1>
           <p className="text-foreground/60 font-light text-sm leading-relaxed">
-            Este teste foi criado para gerar uma leitura individual.
+            Seu resultado será apresentado de forma interpretativa e contextual.
             <br />
-            Seu acesso garante continuidade, privacidade e profundidade.
+            O acesso garante continuidade, privacidade e profundidade.
           </p>
         </motion.div>
 
@@ -129,9 +129,9 @@ export default function CadastroPage() {
           className="mb-8 text-center"
         >
           <p className="text-foreground/50 text-xs font-light leading-relaxed">
-            Este não é um teste genérico.
+            Você já respondeu o teste.
             <br />
-            Seu resultado será apresentado de forma interpretativa e contextual.
+            Agora crie sua conta para acessar o resultado completo.
           </p>
         </motion.div>
 
@@ -281,7 +281,7 @@ export default function CadastroPage() {
             disabled={loading}
             className="w-full px-8 py-4 border border-foreground/20 text-foreground/80 hover:bg-foreground/5 font-light text-sm tracking-wider transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-8"
           >
-            {loading ? 'Criando acesso...' : 'Criar acesso e iniciar o teste'}
+            {loading ? 'Criando acesso...' : 'Criar conta e ver resultado'}
           </button>
 
           {/* Texto secundário */}
